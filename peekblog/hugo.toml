@@ -1,0 +1,5 @@
+baseURL = 'https://github.peekuh.io/'
+languageCode = 'en-us'
+title = "peek's blog"
+
+theme = "re-terminal"

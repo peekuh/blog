@@ -1,0 +1,4 @@
+[submodule "peekblog/public"]
+	path = peekblog/public
+	url = https://github.com/peekuh/peekuh.github.io.git
+	branch = main
