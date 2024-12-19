@@ -1,6 +1,35 @@
 languageCode = 'en-us'
-title = "peek's blog"
+title = "srijan's blog"
 
 theme = "re-terminal"
 relativeURLs = true
+[params]
+  # ["orange", "blue", "red", "green", "pink"]
+  themeColor = "orange"
 
+  showMenuItems = 2
+  [params.contact]
+    email = 'sar.srijan@gmail.com'
+
+[languages]
+  [languages.en.params]
+    languageName = "English"
+    title = "re-Terminal"
+    subtitle = "A simple, retro theme for Hugo"
+    owner = ""
+    keywords = ""
+    copyright = ""
+    menuMore = "Show more"
+    readMore = "Read more"
+    readOtherPosts = "Read other posts"
+    newerPosts = "Newer posts"
+    olderPosts = "Older posts"
+    missingContentMessage = "Page not found..."
+    missingBackButtonLabel = "Back to home page"
+    minuteReadingTime = "min read"
+    words = "words"
+    
+  [languages.en.params.logo]
+    logoText = "srijan's blog"
+
+  
