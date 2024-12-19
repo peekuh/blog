@@ -1,27 +1,32 @@
 +++
 title = "Integrating sign in with Apple with your Django project"
 date = "2024-12-19T13:05:55+05:30"
-author = ""
-authorTwitter = "" #do not include @
+author = "Srijan"
+authorTwitter = "lpeekl" #do not include @
 cover = ""
 coverCaption = ""
 tags = ["", ""]
 keywords = ["", ""]
-description = ""
+description = "Guide to setting up Sign in with Apple for your Django project"
 showFullContent = false
-readingTime = false
+readingTime = true
 hideComments = false
 color = "" #color from the theme settings
 +++
 
-Apple’s documentation is pretty obscure, so here’s a comprehensive guide on integrating apple’s “Sign in with Apple” feature with your Django backend. We will not be using Django-allauth or any external library for that matter, for the simple reason that a library as large as allauth is simply too overkill for our usecase.
+Apple’s documentation is pretty obscure, so here’s a comprehensive guide on integrating apple’s “Sign in with Apple” feature with your Django backend. 
+
+We will not be using Django-allauth or any external library for that matter, for the simple reason that a library as large as allauth is simply too overkill for our usecase.
+
 Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if that’s something you’re already familiar with, this shouldn’t be too difficult.
 
 1. Enroll into the Apple developer program developer console 
     - This can take a while to verify even after you’hv processed the payment (upto 48 hrs in some cases)
+
 2. Once you have access to the developer console, make an App ID list of identifiers 
     - This is fairly straight forward, just make sure you select Sign in with apple under the “Capabilities” section.
     - Note: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
+    
 3. Create a service ID, click the dropdown at list of identifiers and select “Service IDs”. This is what the header should look like.
 
 ![Scenario 1: Across columns](/1.png)
