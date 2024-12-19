@@ -1,6 +1,6 @@
 languageCode = 'en-us'
 title = "srijan's blog"
-
+baseURL = "https://peekuh.github.io/"
 theme = "re-terminal"
 relativeURLs = true
 [params]
@@ -28,7 +28,7 @@ relativeURLs = true
     missingBackButtonLabel = "Back to home page"
     minuteReadingTime = "min read"
     words = "words"
-    
+
   [languages.en.params.logo]
     logoText = "srijan's blog"
 
