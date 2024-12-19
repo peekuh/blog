@@ -1,6 +1,6 @@
 languageCode = 'en-us'
 title = "srijan's blog"
-baseURL = "https://peekuh.github.io/"
+baseURL = "/"
 theme = "re-terminal"
 relativeURLs = true
 [params]
