@@ -14,9 +14,9 @@ hideComments = false
 color = "" #color from the theme settings
 +++
 
-Apple’s documentation is pretty obscure, so here’s a comprehensive guide on integrating apple’s “Sign in with Apple” feature with your Django backend. 
+Apple’s documentation is pretty obscure, so here’s a comprehensive guide on integrating apple’s “Sign in with Apple” feature with your Django backend *without* using external libraries like Django-allauth.
 
-We will not be using Django-allauth or any external library for that matter, for the simple reason that a library as large as allauth is simply too overkill for our usecase.
+> Why avoid Django-allauth? While it's a powerful library, it can be overkill for this specific use case. We'll implement a clean, minimal solution instead.
 
 Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if that’s something you’re already familiar with, this shouldn’t be too difficult.
 
@@ -26,7 +26,7 @@ Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if
 2. Once you have access to the developer console, make an App ID list of identifiers 
     - This is fairly straight forward, just make sure you select Sign in with apple under the “Capabilities” section.
     - Note: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
-    
+
 3. Create a service ID, click the dropdown at list of identifiers and select “Service IDs”. This is what the header should look like.
 
 ![Scenario 1: Across columns](/1.png)
@@ -98,15 +98,13 @@ That concludes the setup on Apple’s side of things.
 Let’s now take a look at how we should go about integrating this without our Django backend.
 6.	To initiate the Apple login process, you first have to redirect your user to the following link https://appleid.apple.com/auth/authorize. The following data must be sent as query parameters to Apple. 
 
-"client_id": getattr(settings, "APPLE_CLIENT_ID")
-
-"redirect_uri" : getattr(settings, "APPLE_REDIRECT_URI")
-
-"response_type" : "code", 
-
-"scope" : "email"
-
-"response_mode": "form_post"
+| Attribute     | Description |
+| ----------- | ----------- |
+| client_id     | your apple client id (service id)       |
+| redirect_uri  | endpoint to your application set in the console|
+| response_type  | "code" (send this exact string)|
+| scope  | "email" (send this exact string) |
+| response_mode  | “form_post” |
 
 ```python
 class AppleLogin(View):
@@ -135,18 +133,16 @@ This is achieved by sending a JWT signed with our `private key` in addition to t
 - Now that we have both the authorization token and our JWT (client_secret), the prerequisites for token exchange are fulfilled.
 - send a `post request` to `https://appleid.apple.com/auth/token` with the following fields in the payload. 
 
-```
-"client_id": your apple client id (service id)
+| Attribute     | Description |
+| ----------- | ----------- |
+| client_id     | your apple client id (service id)       |
+| client_secret  | the jwt you signed with your private key|
+| code  | tauthorization code from apple|
+| grant_type  | "authorization_code" (send this exact string) |
+| redirect_uri  | the redirect uri you set on the developer console|
 
-"client_secret": the jwt you signed with your private key
 
-"code": authorization code from apple
-
-"grant_type": "authorization_code" (send this exact string)
-
-"redirect_uri": the redirect uri you set on the developer console
-```
-Content type in the headers **MUST** be set to to `application/x-www-form-urlencoded`. `application/form-data` or any other MIME type for that matter, will NOT work.   
+Content type in the headers **MUST** be set to to `application/x-www-form-urlencoded`. `application/form-data` or any other MIME type for that matter, will **NOT** work.   
 
 If everything goes well, you’ll receive a response from Apple with a body that looks something like this:
 
@@ -163,22 +159,24 @@ If everything goes well, you’ll receive a response from Apple with a body that
 The `id_token` key holds the JWT encoded with the user’s details. Decoding this JWT should give the following a result in the following format.
 ```json
 {
-  "iss": "https://appleid.apple.com",
-  "aud": "com.zemuria.test",
-  "exp": 1733295098,
-  "iat": 1733208698,
-  "sub": "101549.1a31c4cf89484d0797s4b113fd14db7.0833",
-  "at_hash": "-oF09Dzjbiiymu0wnG_ZnQ",
-  "email": "example@gmail.com",
-  "email_verified": true,
-  "auth_time": 1733208696,
-  "nonce_supported": true
+    "iss": "https://appleid.apple.com",
+    "aud": "com.zemuria.test",
+    "exp": 1733295098,
+    "iat": 1733208698,
+    "sub": "101549.1a31c4cf89484d0797s4b113fd14db7.0833",
+    "at_hash": "-oF09Dzjbiiymu0wnG_ZnQ",
+    "email": "example@gmail.com",
+    "email_verified": true,
+    "auth_time": 1733208696,
+    "nonce_supported": true
 }
 ```
-This should effectively be the end of the sign in with apple process but how would know if the JWT your endpoint received is actually sent by apple?
-Best practice here would be to ensure that the JWT you got is sent from Apple by verifying the JWT’s signature using one of Apple’s JSON Web Keys (JWK’s) at: `https://appleid.apple.com/auth/keys`
 
 # Verifying the JWT signature
+That should effectively be the end of the sign in with apple process but how would know if the JWT your endpoint received is actually sent by apple?
+
+Best practice here would be to ensure that the JWT you got, is sent from Apple by verifying the JWT’s signature using one of Apple’s JSON Web Keys (JWK’s) at: `https://appleid.apple.com/auth/keys`.
+
 Apple uses the `RS256 algorithm` to sign and verify their JWT’s, which means we’ll have to create an RSA public key using the `n` and `e` fields from the Apple JWK’s. 
 
 This is fairly straightforward to achieve using the cryptography library in python.
@@ -277,8 +275,9 @@ class AppleOauthCallback(View):
 
 
 Tips:
-Include you private key as a pem file instead of directly putting it in your env. Read the pem file using the os library
-Setting up mkcert and nginx to create and host a self signed SSL secure url
+- Paste your private key into a `.pem` file instead of directly placing it in your env. Read the pem file using the os library
+
+- Make sure to follow all the way through and click save to make sure your `redirect URIs` register in the developer console
 
 
 
