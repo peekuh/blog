@@ -14,5 +14,4 @@ hideComments = false
 color = "" #color from the theme settings
 +++
 
-THis is some content
-skibidi
+**Coming Soon!**
