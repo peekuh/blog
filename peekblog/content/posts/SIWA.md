@@ -104,7 +104,7 @@ Let’s now take a look at how we should go about integrating this without our D
 | redirect_uri  | endpoint to your application set in the console|
 | response_type  | "code" (send this exact string)|
 | scope  | "email" (send this exact string) |
-| response_mode  | “form_post” |
+| response_mode  | “form_post”  |
 
 ```python
 class AppleLogin(View):
