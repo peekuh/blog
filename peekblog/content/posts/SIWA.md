@@ -3,7 +3,7 @@ title = "Integrating sign in with Apple with your Django project"
 date = "2024-12-19T13:05:55+05:30"
 author = "Srijan"
 authorTwitter = "lpeekl" #do not include @
-cover = ""
+cover = "/sign-in-with-apple-og.jpg"
 coverCaption = ""
 tags = ["", ""]
 keywords = ["", ""]
@@ -20,11 +20,11 @@ Apple’s documentation is pretty obscure, so here’s a comprehensive guide on 
 
 Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if that’s something you’re already familiar with, this shouldn’t be too difficult.
 
-1. Enroll into the Apple developer program developer console 
+1. Enroll into the Apple developer program
     - This can take a while to verify even after you’hv processed the payment (upto 48 hrs in some cases)
 
-2. Once you have access to the developer console, make an App ID list of identifiers 
-    - This is fairly straight forward, just make sure you select Sign in with apple under the “Capabilities” section.
+2. Once you have access to the developer console, make an App ID [(list of identifiers)](https://developer.apple.com/account/resources/identifiers/list)
+    - This is fairly straight forward, just make sure you select *Sign in with apple* under the “Capabilities” section.
     - Note: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
 
 3. Create a service ID, click the dropdown at list of identifiers and select “Service IDs”. This is what the header should look like.
@@ -49,20 +49,22 @@ keep the “sign in with apple” box checked and click the configure button
 -	In the Domains and subdomains section, enter the just domain name of your application without the https prefix. The “Return URLs” section should contain the endpoint in your application responsible for handling Apple’s callback after the User successfully completes the sign in process on the client side.
 
 For Samantha, our “domains and subdomains” section would contain : mysamantha.ai	
-And our Return URL’s section should contain: https://mysamantha.ai/account/apple/callback
+And our Return URL’s section should contain: `https://mysamantha.ai/account/apple/callback`
 
 Notice how the return url is prefixed with https.
 Now, Apple being apple, does **NOT** allow you to use domains without a valid SSL certificate, which means you’ll only be allowed to use return URLs with HTTPS and not http. 
 
 This is can be cumbersome to set for development and testing but its fairly straightforward to use once you have it setup. 
-I used `mkcert` to create a locally signed SSL certificate and `nginx` to  
+I used `mkcert` to create a locally signed SSL certificate and `nginx` as a reverse proxy.
 
 Now, to make sure that your subdomains and return URLs actually register, make sure you follow the following steps:
-*  Click next 
+*  Click **Next** 
+
 ![Scenario 1: Across columns](/6.png)
  
 
-*  Click done
+*  Click **Done**
+
 ![Scenario 1: Across columns](/7.png)
 
 
@@ -83,9 +85,9 @@ Your configuration URL’s will not be saved otherwise, even if they seem like t
 4.	You’ll now have to create a private key that'll be used to Sign the JWT that’ll contain your Client ID and Team ID. 
  
 
-a.	Click configure and select the App ID that you want to associate the private key with
+    - Click configure and select the App ID that you want to associate the private key with
  
-b.	Download the key. Note that this key is deleted from Apple’s servers after you download it so make sure you keep it safe.
+	- Download the key. Note that this key is deleted from Apple’s servers after you download it so make sure you keep it safe.
 
 
 5.	If you followed all of the above steps, you should now have the following:
@@ -120,7 +122,7 @@ class AppleLogin(View):
         return HttpResponseRedirect(f"https://appleid.apple.com/auth/authorize?{urlencode(params)}")
 ```
 
-7.	Once the sign in process has concluded, on a high level, the following steps take place:
+7.	Once the sign in process has concluded on apple's end, on a high level, the following steps take place:
     - Apple sends an authorization token to your application’s endpoint.
 	- You generate a JWT signed with the private key you downloaded earlier.
 	- This JWT is sent back to apple via a post request, along with the authorization code you received earlier.	- If all goes well, apple responds with a JSON object that contains a JWT (id_token) with the user’s details.
@@ -128,7 +130,7 @@ class AppleLogin(View):
 
 7.
 - Get the authorization code from Apple by retrieving the `code` key-value pair from the POST dictionary. This token will later be exchanged for a JWT from apple containing the user’s details.
-- before the token exchange can take place, Apple needs a way to verify if the request to exchange tokens is actually coming from your registered application. 
+- Before the token exchange can take place, Apple needs a way to verify if the request to exchange tokens is actually coming from your registered application. 
 This is achieved by sending a JWT signed with our `private key` in addition to the `authorization code` in our post request to Apple’s token endpoint (https://appleid.apple.com/auth/token)
 - Now that we have both the authorization token and our JWT (client_secret), the prerequisites for token exchange are fulfilled.
 - send a `post request` to `https://appleid.apple.com/auth/token` with the following fields in the payload. 
@@ -137,7 +139,7 @@ This is achieved by sending a JWT signed with our `private key` in addition to t
 | ----------- | ----------- |
 | client_id     | your apple client id (service id)       |
 | client_secret  | the jwt you signed with your private key|
-| code  | tauthorization code from apple|
+| code  | authorization code from apple|
 | grant_type  | "authorization_code" (send this exact string) |
 | redirect_uri  | the redirect uri you set on the developer console|
 
@@ -181,7 +183,7 @@ Apple uses the `RS256 algorithm` to sign and verify their JWT’s, which means w
 
 This is fairly straightforward to achieve using the cryptography library in python.
 Convert the resulting public key to PEM format and use it to decode the JWT.
-If all goes well, you should now have the JWT’s payload with a couple of other keys as well.
+If all goes well, we should now have the JWT’s payload with the user's details.
 
 ```python
 class AppleOauthCallback(View):
@@ -233,18 +235,9 @@ class AppleOauthCallback(View):
                 "verify_signature": True,
             }
         )
-        user_email = user_data.get("email")
-        user_name = user_email.split('@')[0]
-        user = User.objects.filter(email = user_data.get("email")).first()
-        if not user:
-            user_data['password'] = ""
-            user_data['name'] = user_name
-            user_data['picture'] = None
-            user, user_data = LoginView().create_user(user_data, 'apple')
-        login(request, user)
-        return redirect("notes")
-        # return JsonResponse({"email" : user_email}, status = 200)
-        
+        print("decoded jwt: ", user_data)
+
+    #helper function to generate the jwt we send to apple     
     def generate_client_key(self):
         headers = {
             "alg" : "ES256",

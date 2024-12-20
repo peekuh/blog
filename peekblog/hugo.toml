@@ -32,4 +32,11 @@ relativeURLs = true
   [languages.en.params.logo]
     logoText = "srijan's blog"
 
+  [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "about"
+        name = "About"
+        url = "/about"
+
+
   
