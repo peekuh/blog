@@ -3,6 +3,7 @@ title = "srijan's blog"
 baseURL = "/"
 theme = "re-terminal"
 relativeURLs = true
+summaryLength = 0
 [params]
   # ["orange", "blue", "red", "green", "pink"]
   themeColor = "orange"

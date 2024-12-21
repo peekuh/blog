@@ -1,12 +1,11 @@
 +++
-title = "Integrating sign in with Apple with your Django project"
+title = "Integrating 'Sign in with Apple' into your Django project *without all-auth*"
 date = "2024-12-19T13:05:55+05:30"
 author = "Srijan"
 authorTwitter = "lpeekl" #do not include @
 cover = "/sign-in-with-apple-og.jpg"
 coverCaption = ""
 keywords = ["srijan", "django"]
-description = "Guide to setting up Sign in with Apple for your Django project"
 showFullContent = false
 readingTime = true
 hideComments = false
@@ -24,7 +23,7 @@ Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if
 
 2. Once you have access to the developer console, make an App ID [(list of identifiers)](https://developer.apple.com/account/resources/identifiers/list)
     - This is fairly straight forward, just make sure you select *Sign in with apple* under the “Capabilities” section.
-    - Note: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
+    - **Note**: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
 
 3. Create a service ID, click the dropdown at list of identifiers and select “Service IDs”. This is what the header should look like.
 
@@ -39,6 +38,7 @@ Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if
 - You’ll see the following page open, 
 
 ![Scenario 1: Across columns](/4.png)
+
 keep the “sign in with apple” box checked and click the configure button
 
 
@@ -97,7 +97,10 @@ Your configuration URL’s will not be saved otherwise, even if they seem like t
 That concludes the setup on Apple’s side of things. 
 
 Let’s now take a look at how we should go about integrating this without our Django backend.
-6.	To initiate the Apple login process, you first have to redirect your user to the following link https://appleid.apple.com/auth/authorize. The following data must be sent as query parameters to Apple. 
+
+
+## Setting up your Django backend 
+6. To initiate the Apple login process, you first have to redirect your user to the following link https://appleid.apple.com/auth/authorize. The following data must be sent as query parameters to Apple. 
 
 | Attribute     | Description |
 | ----------- | ----------- |

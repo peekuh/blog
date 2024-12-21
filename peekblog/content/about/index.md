@@ -5,4 +5,4 @@ _build = { list = "never" }
 title = "About"
 +++
 
-hello, my name is Srijan. I am a backend engineer at Zemuria Inc.
+hello! I am Srijan. I am a backend engineer at Zemuria Inc.
