@@ -16,7 +16,11 @@ Apple’s documentation is pretty obscure, so here’s a comprehensive guide on 
 
 > Why avoid Django-allauth? While it's a powerful library, it can be overkill for this specific use case. We'll implement a clean, minimal solution instead.
 
-Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if that’s something you’re already familiar with, this shouldn’t be too difficult.
+Apple uses oauth2.0, even though its not explicitly mentioned in the docs, so if that’s something you’re already familiar with, this shouldn’t be too difficult. 
+
+Let's start with the things you need to setup on your [Apple developer console](https://developer.apple.com/)
+
+## Setting up your Apple developer account
 
 1. Enroll into the Apple developer program
     - This can take a while to verify even after you’hv processed the payment (upto 48 hrs in some cases)
@@ -51,7 +55,7 @@ For Samantha, our “domains and subdomains” section would contain : mysamanth
 And our Return URL’s section should contain: `https://mysamantha.ai/account/apple/callback`
 
 Notice how the return url is prefixed with https.
-Now, Apple being apple, does **NOT** allow you to use domains without a valid SSL certificate, which means you’ll only be allowed to use return URLs with HTTPS and not http. 
+Now, Apple being apple, does **NOT** allow you to use domains without a valid SSL certificate, which means you’ll only be allowed to use return URLs with `HTTPS` and not `HTTP`. 
 
 This is can be cumbersome to set for development and testing but its fairly straightforward to use once you have it setup. 
 I used `mkcert` to create a locally signed SSL certificate and `nginx` as a reverse proxy.
@@ -68,6 +72,7 @@ Now, to make sure that your subdomains and return URLs actually register, make s
 
 
 *  After that step you’ll see this page again.
+
 ![Scenario 1: Across columns](/4.png)
  
 Don’t just stop here, click continue and click save in the following page. 
@@ -86,17 +91,18 @@ Your configuration URL’s will not be saved otherwise, even if they seem like t
 
     - Click configure and select the App ID that you want to associate the private key with
  
-	- Download the key. Note that this key is deleted from Apple’s servers after you download it so make sure you keep it safe.
+	- Download the key. Note that this key is deleted from Apple’s servers after you download it, so make sure you keep it safe.
 
 
 5.	If you followed all of the above steps, you should now have the following:
 	- Team ID
 	- Key ID
 	- Service ID
-	- Redirect URI	Private key (.p8 file)
+	- Redirect URI	
+    - Private key (.p8 file)
 That concludes the setup on Apple’s side of things. 
 
-Let’s now take a look at how we should go about integrating this without our Django backend.
+Let’s now take a look at how we should go about integrating this with our Django backend.
 
 
 ## Setting up your Django backend 
