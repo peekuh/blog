@@ -49,7 +49,7 @@ keep the “sign in with apple” box checked and click the configure button
 - You should see the following pop up
 
 ![Scenario 1: Across columns](/5.png)
--	In the Domains and subdomains section, enter the just domain name of your application without the https prefix. The “Return URLs” section should contain the endpoint in your application responsible for handling Apple’s callback after the User successfully completes the sign in process on the client side.
+- In the Domains and subdomains section, enter the just domain name of your application without the https prefix. The “Return URLs” section should contain the endpoint in your application responsible for handling Apple’s callback after the User successfully completes the sign in process on the client side.
 
 For Samantha, our “domains and subdomains” section would contain : mysamantha.ai	
 And our Return URL’s section should contain: `https://mysamantha.ai/account/apple/callback`
@@ -106,7 +106,7 @@ Let’s now take a look at how we should go about integrating this with our Djan
 
 
 ## Setting up your Django backend 
-6. To initiate the Apple login process, you first have to redirect your user to the following link https://appleid.apple.com/auth/authorize. The following data must be sent as query parameters to Apple. 
+1. To initiate the Apple login process, you first have to redirect your user to the following link https://appleid.apple.com/auth/authorize. The following data must be sent as query parameters to Apple. 
 
 | Attribute     | Description |
 | ----------- | ----------- |
@@ -129,17 +129,52 @@ class AppleLogin(View):
 
         return HttpResponseRedirect(f"https://appleid.apple.com/auth/authorize?{urlencode(params)}")
 ```
-
-7.	Once the sign in process has concluded on apple's end, on a high level, the following steps take place:
+2.	Once the sign in process has concluded on apple's end, on a high level, the following steps take place:
     - Apple sends an authorization token to your application’s endpoint.
 	- You generate a JWT signed with the private key you downloaded earlier.
 	- This JWT is sent back to apple via a post request, along with the authorization code you received earlier.	- If all goes well, apple responds with a JSON object that contains a JWT (id_token) with the user’s details.
 	- You can verify the signature of this JWT using apple’s public keys available at https://appleid.apple.com/auth/keys
 
-7.
+# Lets explore each of these steps in detail
+
 - Get the authorization code from Apple by retrieving the `code` key-value pair from the POST dictionary. This token will later be exchanged for a JWT from apple containing the user’s details.
+
+```python
+def post(self, request):
+        authorization_code = request.POST["code"]
+        if not authorization_code:
+            return HttpResponse("authorization code not found")
+```
 - Before the token exchange can take place, Apple needs a way to verify if the request to exchange tokens is actually coming from your registered application. 
 This is achieved by sending a JWT signed with our `private key` in addition to the `authorization code` in our post request to Apple’s token endpoint (https://appleid.apple.com/auth/token)
+
+- We'll use the following helper function to generate the JWT that we'll send to Apple.
+```python
+def generate_client_key(self):
+        headers = {
+            "alg" : "ES256",
+            "kid" : getattr(settings, "APPLE_PRIV_KEY_ID"),
+            "typ" : "JWT"
+        }
+
+        payload = {
+            "iss" : getattr(settings, "APPLE_TEAM_ID"),
+            "iat" : int(timezone.now().timestamp()),
+            "exp" : int((timezone.now() + timezone.timedelta(days=1)).timestamp()),
+            "aud" : "https://appleid.apple.com",
+            "sub" : getattr(settings, "APPLE_CLIENT_ID")
+        }
+
+        private_key = getattr(settings, "APPLE_PRIVATE_KEY")
+
+        encoded_string = jwt.encode(
+            payload=payload,
+            key=private_key,
+            algorithm="ES256",
+            headers=headers
+        )
+        return encoded_string
+```
 - Now that we have both the authorization token and our JWT (client_secret), the prerequisites for token exchange are fulfilled.
 - send a `post request` to `https://appleid.apple.com/auth/token` with the following fields in the payload. 
 
@@ -154,6 +189,23 @@ This is achieved by sending a JWT signed with our `private key` in addition to t
 
 Content type in the headers **MUST** be set to to `application/x-www-form-urlencoded`. `application/form-data` or any other MIME type for that matter, will **NOT** work.   
 
+```python
+token_url = "https://appleid.apple.com/auth/token"
+        client_secret = self.generate_client_key()
+        data = {
+            "client_id": getattr(settings, "APPLE_CLIENT_ID"),
+            "client_secret": client_secret,
+            "code": authorization_code,
+            "grant_type": "authorization_code",
+            "redirect_uri": getattr(settings, "APPLE_REDIRECT_URI")
+        }
+
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        token_exchange_response = requests.post(token_url, data = data, headers = headers)
+
+        token_exchange_response = token_exchange_response.json()
+```
 If everything goes well, you’ll receive a response from Apple with a body that looks something like this:
 
 ```json
@@ -166,7 +218,7 @@ If everything goes well, you’ll receive a response from Apple with a body that
 }
 ```
 
-The `id_token` key holds the JWT encoded with the user’s details. Decoding this JWT should give the following a result in the following format.
+The `id_token` key holds the JWT encoded with the user’s details. Decoding this JWT should give the following result in the following format.
 ```json
 {
     "iss": "https://appleid.apple.com",
@@ -194,29 +246,7 @@ Convert the resulting public key to PEM format and use it to decode the JWT.
 If all goes well, we should now have the JWT’s payload with the user's details.
 
 ```python
-class AppleOauthCallback(View):
-    def post(self, request):
-        print("webapp callback")
-        authorization_code = request.POST["code"]
-        if not authorization_code:
-            return HttpResponse("authorization code not found")
-        
-        token_url = "https://appleid.apple.com/auth/token"
-        client_secret = self.generate_client_key()
-        data = {
-            "client_id": getattr(settings, "APPLE_CLIENT_ID"),
-            "client_secret": client_secret,
-            "code": authorization_code,
-            "grant_type": "authorization_code",
-            "redirect_uri": getattr(settings, "APPLE_REDIRECT_URI")
-        }
-
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-        token_exchange_response = requests.post(token_url, data = data, headers = headers)
-
-        token_exchange_response = token_exchange_response.json()
-
+#verifying jwt signature
         public_keys_response = requests.get("https://appleid.apple.com/auth/keys")
         apple_pubic_keys = json.loads(public_keys_response.text)["keys"] #apple public keys
         jwt_header = jwt.get_unverified_header(token_exchange_response["id_token"]) #get header from id_token jwt
@@ -243,33 +273,6 @@ class AppleOauthCallback(View):
                 "verify_signature": True,
             }
         )
-        print("decoded jwt: ", user_data)
-
-    #helper function to generate the jwt we send to apple     
-    def generate_client_key(self):
-        headers = {
-            "alg" : "ES256",
-            "kid" : getattr(settings, "APPLE_PRIV_KEY_ID"),
-            "typ" : "JWT"
-        }
-
-        payload = {
-            "iss" : getattr(settings, "APPLE_TEAM_ID"),
-            "iat" : int(timezone.now().timestamp()),
-            "exp" : int((timezone.now() + timezone.timedelta(days=1)).timestamp()),
-            "aud" : "https://appleid.apple.com",
-            "sub" : getattr(settings, "APPLE_CLIENT_ID")
-        }
-
-        private_key = getattr(settings, "APPLE_PRIVATE_KEY")
-
-        encoded_string = jwt.encode(
-            payload=payload,
-            key=private_key,
-            algorithm="ES256",
-            headers=headers
-        )
-        return encoded_string
 ```
 
 
