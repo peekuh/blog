@@ -25,11 +25,11 @@ Let's start with the things you need to setup on your [Apple developer console](
 1. Enroll into the Apple developer program
     - This can take a while to verify even after you’hv processed the payment (upto 48 hrs in some cases)
 
-2. Once you have access to the developer console, make an App ID [(list of identifiers)](https://developer.apple.com/account/resources/identifiers/list)
+2. Once you have access to the developer console, make an App ID at [(list of identifiers)](https://developer.apple.com/account/resources/identifiers/list)
     - This is fairly straight forward, just make sure you select *Sign in with apple* under the “Capabilities” section.
     - **Note**: Your bundle ID needs to be unique, i.e you cannot have multiple App ID’s or service ID’s with the same bundle ID.
 
-3. Create a service ID, click the dropdown at list of identifiers and select “Service IDs”. This is what the header should look like.
+3. Create a service ID, click the dropdown at [(list of identifiers)](https://developer.apple.com/account/resources/identifiers/list) and select “Service IDs”. This is what the header should look like.
 
 ![Scenario 1: Across columns](/1.png)
 
@@ -49,9 +49,11 @@ keep the “sign in with apple” box checked and click the configure button
 - You should see the following pop up
 
 ![Scenario 1: Across columns](/5.png)
-- In the Domains and subdomains section, enter the just domain name of your application without the https prefix. The “Return URLs” section should contain the endpoint in your application responsible for handling Apple’s callback after the User successfully completes the sign in process on the client side.
+- In the Domains and subdomains section, enter just the domain name of your application without the https prefix. 
+The “Return URLs” section should contain the endpoint in your application responsible for handling Apple’s callback after the User successfully completes the sign in process on the client side.
 
-For Samantha, our “domains and subdomains” section would contain : mysamantha.ai	
+For Samantha, our “domains and subdomains” section would contain : `mysamantha.ai`	
+
 And our Return URL’s section should contain: `https://mysamantha.ai/account/apple/callback`
 
 Notice how the return url is prefixed with https.
