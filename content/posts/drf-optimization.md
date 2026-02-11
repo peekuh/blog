@@ -3,7 +3,7 @@ title = "Optimizing a DRF application for I/O bound, AI workloads"
 date = "2025-10-02T00:00:00Z"
 author = "Srijan"
 authorTwitter = "lpeekl"
-cover = ""
+cover = "/pretty-sky.jpeg"
 coverCaption = ""
 keywords = ["django", "drf", "gevent", "gunicorn", "async"]
 showFullContent = false
@@ -73,8 +73,10 @@ The default blocking implementations of modules like `socket` and `requests`, ge
 Emphasis on “modified” because the entire module doesn't actually get replaced, just the blocking functions and classes.
 
 When you do 
-`from gevent import monkey`  
-`monkey.patch_all()`
+```python
+from gevent import monkey
+monkey.patch_all()
+```
 
 At the beginning of your `wsgi.py` file, `patch_all()` essentially imports all blocking versions of all compatible modules, and modifies them by replacing their blocking implementation with its cooperative ones.
 This is a one-time operation that happens before any of your other application code executes. So everytime you import the `requests` or `socket` module in your source code, you’ll actually be running the version that has been patched by `gevent`.
@@ -107,3 +109,4 @@ gunicorn myproject.wsgi:application \
 In the next part of this series, I’ll do a benchmark that compares the throughput of a single threaded gunicorn worker vs a gevent one.
 
 
+edit: never actually got ts working in prod so good luck with that ig ✌️

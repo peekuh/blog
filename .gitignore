@@ -1,5 +1,5 @@
 # Hugo lockfile
-peekblog/.hugo_build.lock
+.hugo_build.lock
 
 # Hugo asset/resource cache (generated)
-peekblog/resources/_gen/
+resources/_gen/
