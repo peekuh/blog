@@ -2,3 +2,6 @@
 	path = peekblog/public
 	url = https://github.com/peekuh/peekuh.github.io.git
 	branch = main
+[submodule "peekblog/themes/re-terminal"]
+	path = peekblog/themes/re-terminal
+	url = https://github.com/mirus-ua/hugo-theme-re-terminal.git
