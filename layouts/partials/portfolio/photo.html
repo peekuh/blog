@@ -1,0 +1,15 @@
+{{ $page := .page }}
+{{ $photo := .photo }}
+{{ $image := $page.Resources.GetMatch $photo.src }}
+{{ if not $image }}
+  {{ errorf "Missing gallery image %q on %s" $photo.src $page.RelPermalink }}
+{{ else }}
+  {{ $large := $image.Fit "2200x2200 webp q90" }}
+  {{ $small := $image.Fit "480x480 webp q85" }}
+  {{ $medium := $image.Fit "800x800 webp q85" }}
+  {{ $wide := $image.Fit "1200x1200 webp q88" }}
+  {{ $hero := .hero | default false }}
+  <a class="photo-link{{ if $hero }} photo-link--hero{{ end }}" href="{{ $large.RelPermalink }}" data-photo data-alt="{{ $photo.alt }}" data-width="{{ $large.Width }}" data-height="{{ $large.Height }}" aria-label="Enlarge image: {{ $photo.alt }}">
+    <img src="{{ $medium.RelPermalink }}" srcset="{{ $small.RelPermalink }} {{ $small.Width }}w, {{ $medium.RelPermalink }} {{ $medium.Width }}w, {{ $wide.RelPermalink }} {{ $wide.Width }}w, {{ $large.RelPermalink }} {{ $large.Width }}w" sizes="{{ if $hero }}(max-width: 1208px) calc(100vw - 48px), 1160px{{ else }}(max-width: 600px) calc(100vw - 32px), (max-width: 1208px) calc((100vw - 72px) / 2), 568px{{ end }}" width="{{ $medium.Width }}" height="{{ $medium.Height }}" alt="{{ $photo.alt }}" {{ if $hero }}fetchpriority="high"{{ else if not .eager }}loading="lazy"{{ end }} decoding="async">
+  </a>
+{{ end }}

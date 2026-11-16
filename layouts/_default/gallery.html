@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}">
+<head>
+  <title>{{ .Title }} :: {{ .Site.Title }}</title>
+  {{ partial "head.html" . }}
+  {{ $styles := resources.Get "css/portfolio.css" | resources.Minify | resources.Fingerprint }}
+  <link rel="stylesheet" href="{{ $styles.RelPermalink }}" integrity="{{ $styles.Data.Integrity }}">
+</head>
+<body class="{{ .Site.Params.themeColor }} image-route">
+  <main class="image-gallery" data-gallery aria-label="{{ .Title }}">
+    {{ with .Params.hero }}
+      {{ partial "portfolio/photo.html" (dict "page" $ "photo" . "hero" true) }}
+    {{ end }}
+    {{ range $index, $photo := .Params.photos }}
+      {{ partial "portfolio/photo.html" (dict "page" $ "photo" $photo "eager" (lt $index 2)) }}
+    {{ end }}
+  </main>
+  <dialog class="photo-viewer" aria-label="Image viewer">
+    <div class="viewer-top">
+      <a class="viewer-original" href="" aria-label="Open full-size image">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M10 5H5v14h14v-5"/></svg>
+      </a>
+      <button class="viewer-close" type="button" aria-label="Close image viewer">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
+      </button>
+    </div>
+    <div class="viewer-stage" aria-busy="false">
+      <img class="viewer-image" alt="">
+      <p class="viewer-loading sr-only" role="status" hidden>Loading image</p>
+      <p class="viewer-error sr-only" role="alert" hidden>This image couldn't load. Use the full-size image link, or move to another image.</p>
+    </div>
+    <div class="viewer-controls">
+      <button class="viewer-previous" type="button" aria-label="Previous image">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>
+      </button>
+      <span class="viewer-position sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
+      <button class="viewer-next" type="button" aria-label="Next image">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </dialog>
+  {{ $script := resources.Get "js/photo-viewer.js" | js.Build | resources.Minify | resources.Fingerprint }}
+  <script src="{{ $script.RelPermalink }}" integrity="{{ $script.Data.Integrity }}" defer></script>
+</body>
+</html>
